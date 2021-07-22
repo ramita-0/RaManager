@@ -1,2 +1,3 @@
-# RaManager
-Password Manager made in python 
+# -------   RaManager   -------
+
+Password Manager made in Python
