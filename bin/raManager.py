@@ -1,8 +1,11 @@
 import pickle
 from getpass import getpass
 from os import system
+from hashlib import sha256
 cls = lambda: system('cls')
 cls()
+
+#falta implementar primera contrasena maestra para el login
 
 def login():
     pw = ""
@@ -27,7 +30,7 @@ def printMenu():
 def getAccs():
     cuentasGuardadas = {}
     cuentaActual = {}
-    with open("cuentas.pkl", "rb") as file:
+    with open("data.pkl", "rb") as file:
             while True:
                 try:
                     cuentaActual = pickle.load(file)
@@ -51,6 +54,7 @@ def printAccPassword():
         cls()
         print("\n-Datos-\n")
         print("         " + cuenta + "  " + getAccs()[cuenta])
+
     else:
         cls()
         print("Esa cuenta no existe!")
@@ -67,7 +71,7 @@ def addAcc():
         passCuenta = input("-> ")
         nuevaCuenta[nombreCuenta] = passCuenta
 
-        with open("cuentas.pkl", "ab") as file:
+        with open("data.pkl", "ab") as file:
             pickle.dump(nuevaCuenta, file, protocol=pickle.HIGHEST_PROTOCOL)
             cls()
             print("Registrado con exito!")
@@ -78,45 +82,61 @@ def addAcc():
         print("Ya existe una cuenta con ese nombre!")
         printMenu()
     
-#fixear
-def editAcc(nombreCuenta):
-    cls()
-    cuentasGuardadas = getAccs()
-    if nombreCuenta in getAccs():
-        print("\n-Editando: " + nombreCuenta)
-        aux = {}
-        pw = getpass("\nIngrese nueva contrasena -> ")
-        pw2 = getpass("Confirme su nueva contrasena -> ")
-        file = open("cuentas.pkl", "rb+")
-        if pw == pw2:
-            while True:
-                try:
-                    cuenta = pickle.load(file)
-                    print(cuenta)
-                    if nombreCuenta in cuenta:
-                        cuenta[nombreCuenta] = pw
-                        aux.update(cuenta)
-                except EOFError:
-                    print("error")
-                    break
-            file.seek(0)
-            file.truncate()
-            file
-        else:
-            cls()
-            print("Las contrasenas no son iguales!")
-            printMenu()
-            
-def deleteAcc():
+def editAcc():
     cls()
     print("\nIngrese el nombre de la cuenta que quiera editar")
     nombreCuenta = input("-> ")
 
     aux = {}
-    file = open("cuentas.pkl", 'rb+')
+    file = open("data.pkl", 'rb+')
+    file.seek(0,0)
+
+    if nombreCuenta in getAccs():
+        print("\nIngrese la nueva contrasena")
+        passCuenta = input("-> ")
+        cuentaNueva = {}
+        cuentaNueva[nombreCuenta] = passCuenta
+
+        while True:
+            try:
+                cuenta = pickle.load(file)
+
+                if nombreCuenta not in cuenta:
+                    aux.update(cuenta)
+                else:
+                    aux.update(cuentaNueva)
+            except EOFError:
+                file.close()
+                break
+
+        file = open("data.pkl", "wb")
+
+        for keyActual  in aux:
+            valorActual = aux[keyActual]
+
+            dictAux = {}
+            dictAux[keyActual] = valorActual
+            pickle.dump(dictAux, file)
+
+        file.close()
+        cls()
+        print("Cuenta editada con exito!")
+        printMenu()
+
+    else:
+        cls()
+        print("Esa cuenta no existe!")
+        printMenu()
+            
+def deleteAcc():
+    cls()
+    print("\nIngrese el nombre de la cuenta que quiera borrar")
+    nombreCuenta = input("-> ")
+
+    aux = {}
+    file = open("data.pkl", 'rb+')
     file.seek(0,0)
     
-    #Agregar control para primero verificar si el nombre pasado por parametro existe dentro de las cuentas registradas anteriormente
     if nombreCuenta in getAccs():
         while True:
             try:
@@ -129,7 +149,7 @@ def deleteAcc():
                 file.close()
                 break
 
-        file = open("cuentas.pkl", "wb")
+        file = open("data.pkl", "wb")
 
         for keyActual  in aux:
             valorActual = aux[keyActual]
@@ -137,6 +157,7 @@ def deleteAcc():
             dictAux = {}
             dictAux[keyActual] = valorActual
             pickle.dump(dictAux, file)
+
         file.close()
         cls()
         print("Cuenta borrada con exito!")
